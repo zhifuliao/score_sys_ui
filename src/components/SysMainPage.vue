@@ -17,6 +17,8 @@
                 :header-cell-style="{ background: '#d9e5fd', color: 'black', fontWeight: 1000 }">
                 <el-table-column prop="xnxq" label="学年学期" min-width="15%" align="center" :resizable="false">
                 </el-table-column>
+                <el-table-column prop="account" label="学号" min-width="12%" align="center" :resizable="false">
+                </el-table-column>
                 <el-table-column prop="course_id" label="课程代码" min-width="10%" align="center" :resizable="false">
                 </el-table-column>
                 <el-table-column prop="name" label="课程名称" min-width="10%" align="center" :resizable="false">
@@ -46,6 +48,8 @@
             <el-table class="tab" :data="score_table" border
                 :header-cell-style="{ background: '#d9e5fd', color: 'black', fontWeight: 1000 }">
                 <el-table-column prop="xnxq" label="学年学期" min-width="15%" align="center" :resizable="false">
+                </el-table-column>
+                <el-table-column prop="account" label="学号" min-width="12%" align="center" :resizable="false">
                 </el-table-column>
                 <el-table-column prop="course_id" label="课程代码" min-width="10%" align="center" :resizable="false">
                 </el-table-column>
@@ -166,6 +170,7 @@ export default {
         const removeRow = (row) => {
             var p = {
                 token: this.$route.params.token,
+                account: row['account'],
                 course_id: row['course_id']
             }
             var ptr = this
@@ -176,7 +181,8 @@ export default {
                             title: '删除成功',
                             type: 'success'
                         })
-                        score_table.slice(row, 1)
+                        console.log(score_table)
+                        score_table.splice(row, 1)
                     } else {
                         ptr.$notify({
                             title: '删除失败',
