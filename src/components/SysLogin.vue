@@ -69,7 +69,7 @@ export default {
             waring_text: "",
             auth_code_id: null,
             auth_code_b64S: null,
-            is_remeber: false
+            is_remeber: true
         }
     },
     mounted() {
