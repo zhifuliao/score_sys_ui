@@ -164,7 +164,10 @@ import { reactive } from 'vue';
 export default {
     data() {
         const removeRow = (row) => {
-            var p = { 'account': this.$route.params.account_val, 'course_id': row['course_id'] }
+            var p = {
+                token: this.$route.params.token,
+                course_id: row['course_id']
+            }
             var ptr = this
             axios.get('http://127.0.0.1:8888/score/update', { params: p })
                 .then(function (response) {
@@ -189,7 +192,7 @@ export default {
         );
         return {
             removeRow,
-            state: 'teacher_list',
+            state: null,
             states: ['stu', 'teacher_list', 'teacher_add', `teacher_update`],
             date_chose: '2021-01-01',
             date_options: [
@@ -210,7 +213,7 @@ export default {
                     label: '2022-2023 下学期'
                 }
             ],
-            user_name_label_text: `用户名:${this.$route.params.account_val}`,
+            user_name_label_text: `用户名:${this.$route.params.account}`,
             tree_data: [{
                 label: '教师',
                 children: [{
@@ -232,7 +235,7 @@ export default {
             n_score: null,
             n_per: null,
             e_score: null,
-            e_per: null
+            e_per: null,
         }
     },
     methods: {
@@ -240,7 +243,7 @@ export default {
             var ptr = this
             this.score_table.length = 0
             var obj = {
-                account: this.$route.params.account_val,
+                token: this.$route.params.token,
                 date: val
             }
             console.log(obj)
@@ -274,15 +277,21 @@ export default {
                 return
             }
             var obj = {
-                course_id: parseInt(this.course_id),
+                token: this.$route.params.token,
                 account: this.stu_account,
+                course_id: parseInt(this.course_id),
                 usual_score: n_score,
                 exam_score: e_score,
                 final_score: n_score * n_p + e_score * e_p
             }
             switch (type) {
                 case 'post':
-                    axios.post('http://127.0.0.1:8888/score', JSON.stringify(obj))
+                    axios.post('http://127.0.0.1:8888/score',
+                        // {
+                            // params: { token: this.$route.params.token },
+                            // data: JSON.stringify(obj)
+                        // })
+                        JSON.stringify(obj))
                         .then(function (response) {
                             if (JSON.parse(response.data)["flag"]) {
                                 ptr.$notify({
@@ -291,7 +300,7 @@ export default {
                                 })
                             } else {
                                 ptr.$notify({
-                                    title: '添加失败',
+                                    title: `添加失败${JSON.parse(response.data)["msg"]}`,
                                     type: 'error'
                                 })
                             }
@@ -300,7 +309,12 @@ export default {
                         });
                     break;
                 case 'put':
-                    axios.post(`http://127.0.0.1:8888/score/update`, JSON.stringify(obj))
+                    axios.post(`http://127.0.0.1:8888/score/update`,
+                        // {
+                        //     params: { token: this.$route.params.token },
+                        //     data: {JSON.stringify(obj)}
+                        // })
+                        JSON.stringify(obj))
                         .then(function (response) {
                             if (JSON.parse(response.data)["flag"]) {
                                 ptr.$notify({
@@ -309,7 +323,7 @@ export default {
                                 })
                             } else {
                                 ptr.$notify({
-                                    title: '更新失败',
+                                    title: `更新失败${JSON.parse(response.data)["msg"]}`,
                                     type: 'error'
                                 })
                             }

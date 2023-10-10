@@ -47,7 +47,7 @@
             <!-- waring (提示信息) -->
             <div id="waring_text" class="text" v-text="waring_text"></div>
             <!-- remeber_pwd_checkbox (按钮) -->
-            <input id="remeber_pwd_checkbox" type="checkbox" name="remeber_pwd_redio" value="remeber">
+            <input id="remeber_pwd_checkbox" v-model="is_remeber" type="checkbox" name="remeber_pwd_redio" value="remeber">
             <label id="remeber_pwd_checkbox_label" for="remeber_pwd_checkbox">记住密码</label>
             <!-- auth_code_img (图片) -->
             <img id="auth_code_img" v-if="auth_code_b64S" :src="auth_code_b64S" />
@@ -57,6 +57,8 @@
 
 <script>
 import axios from 'axios'
+import Cookies from 'js-cookie'
+import CryptoJS from "crypto-js";
 
 export default {
     data() {
@@ -66,17 +68,31 @@ export default {
             auth_code_val: "",
             waring_text: "",
             auth_code_id: null,
-            auth_code_b64S: null
+            auth_code_b64S: null,
+            is_remeber: false
         }
     },
     mounted() {
         this.GetAuthCode()
+        this.GetCookie()
     },
     methods: {
+        GetCookie() {
+            this.account_val = Cookies.get("username");
+            if (Cookies.get("password")) {
+                this.pwd_val = CryptoJS.AES.decrypt(
+                    Cookies.get("password"),
+                    "123456"
+                ).toString(CryptoJS.enc.Utf8);
+            } else {
+                this.account_val = "";
+            }
+        },
         async GetAuthCode() {
             var ptr = this
             axios.get('http://127.0.0.1:8888/login', { params: { captcha_type: "string" } })
                 .then(function (response) {
+                    console.log(response);
                     ptr.auth_code_id = JSON.parse(response.data)["auth_code_id"]
                     ptr.auth_code_b64S = JSON.parse(response.data)["auth_code_b64S"]
                 })
@@ -106,13 +122,31 @@ export default {
             }
             axios.post('http://127.0.0.1:8888/login', JSON.stringify(obj))
                 .then(function (response) {
-                    var login_flag = JSON.parse(response.data)["login_flag"]
+                    console.log(response)
+                    var login_flag = JSON.parse(response.data)["flag"]
                     if (login_flag == 1) { // 成功登录
-                        ptr.$router.push(`/main_page/${ptr.account_val}`)
+                        if (ptr.is_remeber) { // 记住密码
+                            Cookies.set("username", ptr.account_val, {
+                                expires: 3
+                            });
+                            Cookies.set(
+                                "password",
+                                CryptoJS.AES.encrypt(ptr.pwd_val, "123456"),
+                                {
+                                    expires: 3
+                                }
+                            );
+                        } else {
+                            Cookies.remove("username");
+                            Cookies.remove("password");
+                        }
+                        ptr.$router.push(`/main_page/${ptr.account_val}/${JSON.parse(response.data)["token"]}`)
                     } else if (login_flag == 2) { // 验证码错误
                         ptr.waring_text = "验证码错误!"
-                    } else { // 账号或者密码错误
+                    } else if (login_flag == 3) { // 账号或者密码错误
                         ptr.waring_text = "账号或者密码错误!"
+                    } else { // 其它错误
+                        ptr.waring_text = "服务端未知错误!"
                     }
                 }).catch(function (error) {
                     console.log(error);

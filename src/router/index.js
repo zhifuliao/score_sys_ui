@@ -13,7 +13,7 @@ const routes = [
   },
   {
 	// 路径
-    path: '/main_page/:account_val',
+    path: '/main_page/:account/:token',
     // 引入并使用组件（方式二）
     // 跳转到这个页面的时候，再去加载这个文件
     component: () => import('@/components/SysMainPage.vue')
