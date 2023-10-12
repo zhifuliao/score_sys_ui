@@ -89,19 +89,19 @@
             <div class="n_score_label ">
                 <p><span>平时成绩:</span></p>
             </div>
-            <el-input class="n_score_input" v-model="n_score" placeholder="请输入平时成绩" clearable></el-input>
+            <el-input class="n_score_input" type="number" v-model="n_score" placeholder="请输入平时成绩" clearable></el-input>
             <div class="n_per_label ">
                 <p><span>平时占比(0.1形式):</span></p>
             </div>
-            <el-input class="n_per_input" v-model="n_per" placeholder="请输入平时占比" clearable></el-input>
+            <el-input class="n_per_input" type="number" v-model="n_per" placeholder="请输入平时占比" clearable></el-input>
             <div class="e_score_label ">
                 <p><span>期末成绩:</span></p>
             </div>
-            <el-input class="e_score_input" v-model="e_score" placeholder="请输入期末成绩" clearable></el-input>
+            <el-input class="e_score_input" type="number" v-model="e_score" placeholder="请输入期末成绩" clearable></el-input>
             <div class="e_per_label ">
                 <p><span>期末占比(0.1形式):</span></p>
             </div>
-            <el-input class="e_per_input" v-model="e_per" placeholder="请输入期末占比" clearable></el-input>
+            <el-input class="e_per_input" type="number" v-model="e_per" placeholder="请输入期末占比" clearable></el-input>
             <el-button id="add_btn" class="t_btn" type="primary" @click="btnScore('post')" round>添加成绩</el-button>
         </div>
         <!-- 内容 (动态面板) 教师成绩更新 -->
@@ -120,19 +120,19 @@
             <div class="n_score_label ">
                 <p><span>平时成绩:</span></p>
             </div>
-            <el-input class="n_score_input" v-model="n_score" placeholder="请输入平时成绩" clearable></el-input>
+            <el-input class="n_score_input" type="number" v-model="n_score" placeholder="请输入平时成绩" clearable></el-input>
             <div class="n_per_label ">
                 <p><span>平时占比(0.1形式):</span></p>
             </div>
-            <el-input class="n_per_input" v-model="n_per" placeholder="请输入平时占比" clearable></el-input>
+            <el-input class="n_per_input" type="number" v-model="n_per" placeholder="请输入平时占比" clearable></el-input>
             <div class="e_score_label ">
                 <p><span>期末成绩:</span></p>
             </div>
-            <el-input class="e_score_input" v-model="e_score" placeholder="请输入期末成绩" clearable></el-input>
+            <el-input class="e_score_input" type="number" v-model="e_score" placeholder="请输入期末成绩" clearable></el-input>
             <div class="e_per_label ">
                 <p><span>期末占比(0.1形式):</span></p>
             </div>
-            <el-input class="e_per_input" v-model="e_per" placeholder="请输入期末占比" clearable></el-input>
+            <el-input class="e_per_input" type="number" v-model="e_per" placeholder="请输入期末占比" clearable></el-input>
             <el-button id="update_btn" class="t_btn" type="primary" @click="btnScore('put')" round>更新成绩</el-button>
         </div>
         <!-- 用户栏 -->
@@ -167,6 +167,7 @@ import { reactive } from 'vue';
 
 export default {
     data() {
+        // 教师删除成绩
         const removeRow = (row) => {
             var p = {
                 token: this.$route.params.token,
@@ -220,6 +221,7 @@ export default {
                 }
             ],
             user_name_label_text: `用户名:${this.$route.params.account}`,
+            // 菜单树
             tree_data: [{
                 label: '教师',
                 children: [{
@@ -245,17 +247,27 @@ export default {
         }
     },
     methods: {
+        // 请求成绩列表
         askTable(val) {
             var ptr = this
             this.score_table.length = 0
             var obj = {
                 token: this.$route.params.token,
-                date: val
+                date: val,
             }
             console.log(obj)
             axios.get('http://127.0.0.1:8888/score', { params: obj })
                 .then(function (response) {
                     var arr = JSON.parse(response.data)
+                    // 判断权限检测结果
+                    if (arr["flag"] == false) {
+                        ptr.$notify({
+                            title: '权限不足',
+                            type: 'error'
+                        })
+                        return
+                    }
+                    // 检测通过
                     for (var i in arr) {
                         var o = {}
                         o['xnxq'] = ptr.date_chose
@@ -274,6 +286,15 @@ export default {
             var e_p = parseFloat(this.e_per)
             var n_score = parseFloat(this.n_score)
             var e_score = parseFloat(this.e_score)
+            // 检查数据输入格式
+            if ((n_score < 0 || n_score > 100) || (e_score < 0 || e_score > 100)) {
+                this.$notify({
+                    title: '添加失败',
+                    message: '平时成绩或考试成绩输入不正确(0~100)',
+                    type: 'error'
+                })
+                return
+            }
             if (n_p + e_p != 1) {
                 this.$notify({
                     title: '添加失败',
@@ -282,6 +303,7 @@ export default {
                 })
                 return
             }
+            // 组织数据
             var obj = {
                 token: this.$route.params.token,
                 account: this.stu_account,
@@ -291,11 +313,12 @@ export default {
                 final_score: n_score * n_p + e_score * e_p
             }
             switch (type) {
+                // 添加成绩
                 case 'post':
                     axios.post('http://127.0.0.1:8888/score',
                         // {
-                            // params: { token: this.$route.params.token },
-                            // data: JSON.stringify(obj)
+                        // params: { token: this.$route.params.token },
+                        // data: JSON.stringify(obj)
                         // })
                         JSON.stringify(obj))
                         .then(function (response) {
@@ -314,6 +337,7 @@ export default {
                             console.log(error)
                         });
                     break;
+                //更新成绩
                 case 'put':
                     axios.post(`http://127.0.0.1:8888/score/update`,
                         // {
@@ -339,23 +363,95 @@ export default {
                     break;
             }
         },
+        // 当日期改变时就发送请求
         selectChanged(val) {
             console.log(val)
             this.askTable(val)
         },
+        //菜单树有点击事件时
         handleNodeClick(_, v) {
+            var ptr = this
+            var user_type
+            switch (v.data["label"]) {
+                case '查看成绩': // 学生
+                    user_type = "student"
+                    break;
+                default:
+                    user_type = "teacher"
+                    break;
+            }
+            var obj = {
+                token: this.$route.params.token,
+                user_type: user_type
+            }
             switch (v.data["label"]) {
                 case '成绩列表': // 教师查看成绩
-                    this.state = this.states[1]
+                    axios.get('http://127.0.0.1:8888/policy', { params: obj })
+                        .then(function (response) {
+                            var arr = JSON.parse(response.data)
+                            if (arr["flag"] == false) {
+                                ptr.$notify({
+                                    title: `权限不足,${JSON.parse(response.data)["msg"]}`,
+                                    type: 'error'
+                                })
+                                return
+                            } else { // 用户类型匹配
+                                ptr.state = ptr.states[1]
+                            }
+                        }).catch(function (error) {
+                            console.log(error)
+                        });
                     break;
                 case '添加成绩': // 教师添加成绩
-                    this.state = this.states[2]
+                    axios.get('http://127.0.0.1:8888/policy', { params: obj })
+                        .then(function (response) {
+                            var arr = JSON.parse(response.data)
+                            if (arr["flag"] == false) {
+                                ptr.$notify({
+                                    title: `权限不足,${JSON.parse(response.data)["msg"]}`,
+                                    type: 'error'
+                                })
+                                return
+                            } else { // 用户类型匹配
+                                ptr.state = ptr.states[2]
+                            }
+                        }).catch(function (error) {
+                            console.log(error)
+                        });
                     break;
                 case '更新成绩': // 教师更新成绩
-                    this.state = this.states[3]
+                    axios.get('http://127.0.0.1:8888/policy', { params: obj })
+                        .then(function (response) {
+                            var arr = JSON.parse(response.data)
+                            if (arr["flag"] == false) {
+                                ptr.$notify({
+                                    title: `权限不足,${JSON.parse(response.data)["msg"]}`,
+                                    type: 'error'
+                                })
+                                return
+                            } else { // 用户类型匹配
+                                ptr.state = ptr.states[3]
+                            }
+                        }).catch(function (error) {
+                            console.log(error)
+                        });
                     break;
                 case '查看成绩': // 学生查看成绩
-                    this.state = this.states[0]
+                    axios.get('http://127.0.0.1:8888/policy', { params: obj })
+                        .then(function (response) {
+                            var arr = JSON.parse(response.data)
+                            if (arr["flag"] == false) {
+                                ptr.$notify({
+                                    title: `权限不足${JSON.parse(response.data)["msg"]}`,
+                                    type: 'error'
+                                })
+                                return
+                            } else { // 用户类型匹配
+                                ptr.state = ptr.states[0]
+                            }
+                        }).catch(function (error) {
+                            console.log(error)
+                        });
                     break;
             }
         },

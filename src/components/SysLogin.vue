@@ -77,6 +77,7 @@ export default {
         this.GetCookie()
     },
     methods: {
+        // 获取记住密码的cookie
         GetCookie() {
             this.account_val = Cookies.get("username");
             if (Cookies.get("password")) {
@@ -88,6 +89,7 @@ export default {
                 this.account_val = "";
             }
         },
+        // 获取验证码
         async GetAuthCode() {
             var ptr = this
             axios.get('http://127.0.0.1:8888/login', { params: { captcha_type: "string" } })
@@ -100,6 +102,7 @@ export default {
                     console.log(error);
                 });
         },
+        // 登录请求
         Login() {
             if (this.account_val == "") {
                 this.waring_text = "请输入账号!"
