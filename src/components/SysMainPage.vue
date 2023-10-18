@@ -67,7 +67,7 @@
                 </el-table-column>
                 <el-table-column label="操作" min-width="12%" align="center" :resizable="false">
                     <template #default="{ row }">
-                        <el-button type="danger" @click="removeRow(row)">删除</el-button>
+                        <el-button type="danger" @click="handleDelete(row)">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -247,6 +247,20 @@ export default {
         }
     },
     methods: {
+        // 处理删除
+        handleDelete(row) {
+            //弹出提示框，询问用户是否删除
+            this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                //用户确认删除，执行删除代码
+                this.removeRow(row)
+            }).catch(() => {
+                //用户取消删除，不执行删除代码
+            })
+        },
         // 请求成绩列表
         askTable(val) {
             var ptr = this
