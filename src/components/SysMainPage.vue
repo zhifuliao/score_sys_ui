@@ -175,15 +175,15 @@ export default {
                 course_id: row['course_id']
             }
             var ptr = this
-            axios.get('http://127.0.0.1:8888/score/update', { params: p })
+            axios.delete('http://127.0.0.1:8888/score/update', { params: p })
                 .then(function (response) {
                     if (JSON.parse(response.data)["flag"]) {
                         ptr.$notify({
                             title: '删除成功',
                             type: 'success'
                         })
-                        console.log(score_table)
-                        score_table.splice(row, 1)
+                        console.log(score_table.indexOf(row))
+                        score_table.splice(score_table.indexOf(row), 1)
                     } else {
                         ptr.$notify({
                             title: '删除失败',
@@ -353,7 +353,7 @@ export default {
                     break;
                 //更新成绩
                 case 'put':
-                    axios.post(`http://127.0.0.1:8888/score/update`,
+                    axios.put(`http://127.0.0.1:8888/score/update`,
                         // {
                         //     params: { token: this.$route.params.token },
                         //     data: {JSON.stringify(obj)}
